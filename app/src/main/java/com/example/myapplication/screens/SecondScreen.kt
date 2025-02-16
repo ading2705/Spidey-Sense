@@ -3,6 +3,9 @@ package com.example.myapplication.screens
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.location.Location
+import android.location.LocationManager
+import android.os.Bundle
 import android.telephony.SmsManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 
@@ -21,18 +25,29 @@ import androidx.navigation.NavController
 fun SecondScreen(navController: NavController) {
     val context = LocalContext.current
     var phoneNumber by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
-    var hasPermission by remember { mutableStateOf(false) }
+    var hasSmsPermission by remember { mutableStateOf(false) }
+    var hasLocationPermission by remember { mutableStateOf(false) }
 
-    val requestPermissionLauncher = rememberLauncherForActivityResult(
+    val requestSmsPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
-        hasPermission = isGranted
+        hasSmsPermission = isGranted
     }
 
+    val requestLocationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        hasLocationPermission = isGranted
+    }
+
+    // Check and request permissions
     LaunchedEffect(Unit) {
-        hasPermission = ContextCompat.checkSelfPermission(
+        hasSmsPermission = ContextCompat.checkSelfPermission(
             context, Manifest.permission.SEND_SMS
+        ) == PackageManager.PERMISSION_GRANTED
+
+        hasLocationPermission = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
     }
 
@@ -43,36 +58,29 @@ fun SecondScreen(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("Enter a phone number:", modifier = Modifier.padding(bottom = 8.dp))
+        Text("Enter Phone Number to Send Location:", modifier = Modifier.padding(bottom = 8.dp))
 
         TextField(
             value = phoneNumber,
             onValueChange = { phoneNumber = it },
             label = { Text("Phone Number") },
-            modifier = Modifier.padding(bottom = 16.dp)
+            modifier = Modifier.fillMaxWidth()
         )
 
-        Text("Enter your message:", modifier = Modifier.padding(bottom = 8.dp))
-
-        TextField(
-            value = message,
-            onValueChange = { message = it },
-            label = { Text("Message") },
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
+        Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            if (phoneNumber.isNotBlank() && message.isNotBlank()) {
-                if (hasPermission) {
-                    sendSMS(context, phoneNumber, message)
-                } else {
-                    requestPermissionLauncher.launch(Manifest.permission.SEND_SMS)
-                }
-            } else {
-                Toast.makeText(context, "Please enter both a phone number and a message", Toast.LENGTH_SHORT).show()
+            if (!hasSmsPermission) {
+                requestSmsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
+            }
+            if (!hasLocationPermission) {
+                requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            }
+            if (hasSmsPermission && hasLocationPermission) {
+                sendLocationSms(context, phoneNumber)
             }
         }) {
-            Text("Send SMS")
+            Text("Send My Coordinates")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -83,12 +91,40 @@ fun SecondScreen(navController: NavController) {
     }
 }
 
-fun sendSMS(context: Context, phoneNumber: String, message: String) {
-    try {
-        val smsManager = SmsManager.getDefault()
-        smsManager.sendTextMessage(phoneNumber, null, message, null, null)
-        Toast.makeText(context, "SMS Sent!", Toast.LENGTH_SHORT).show()
-    } catch (e: Exception) {
-        Toast.makeText(context, "Failed to send SMS: ${e.message}", Toast.LENGTH_LONG).show()
+// Function to get location and send SMS
+fun sendLocationSms(context: Context, phoneNumber: String) {
+    if (phoneNumber.isBlank()) {
+        Toast.makeText(context, "Please enter a valid phone number", Toast.LENGTH_SHORT).show()
+        return
+    }
+
+    val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager?
+
+    if (locationManager != null) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
+            == PackageManager.PERMISSION_GRANTED
+        ) {
+            val location: Location? = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
+
+            if (location != null) {
+                val latitude = location.latitude
+                val longitude = location.longitude
+                val message = "My location: Latitude = $latitude, Longitude = $longitude"
+
+                try {
+                    val smsManager = SmsManager.getDefault()
+                    smsManager.sendTextMessage(phoneNumber, null, message, null, null)
+                    Toast.makeText(context, "Location Sent!", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Failed to send SMS: ${e.message}", Toast.LENGTH_LONG).show()
+                }
+            } else {
+                Toast.makeText(context, "Unable to retrieve location", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(context, "Location permission not granted", Toast.LENGTH_SHORT).show()
+        }
+    } else {
+        Toast.makeText(context, "Location service not available", Toast.LENGTH_SHORT).show()
     }
 }
