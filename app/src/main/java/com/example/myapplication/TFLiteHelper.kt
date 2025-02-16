@@ -21,9 +21,11 @@ class TFLiteHelper(context: Context) {
         return fileChannel.map(FileChannel.MapMode.READ_ONLY, fileDescriptor.startOffset, fileDescriptor.declaredLength)
     }
 
-    fun predict(input: Array<IntArray>): FloatArray {
-        val output = FloatArray(1)  // Output is a single probability value
+    // Modify predict method to accept FloatArray
+    fun predict(input: Array<FloatArray>): Float {
+        val output = Array(1) { FloatArray(1) }  // Adjust to match [1,1] output shape
         interpreter.run(input, output)
-        return output
+        return output[0][0]  // Extract the value from [1,1] shape
     }
 }
+
