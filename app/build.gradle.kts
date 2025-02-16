@@ -50,6 +50,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation ("org.tensorflow:tensorflow-lite:2.9.0")
+    implementation("androidx.navigation:navigation-compose:2.7.6")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
