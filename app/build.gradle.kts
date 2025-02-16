@@ -49,8 +49,17 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation ("org.tensorflow:tensorflow-lite:2.9.0")
+
+
+    // TensorFlow Lite
+    implementation("org.tensorflow:tensorflow-lite:2.9.0") // Core library
+    implementation("org.tensorflow:tensorflow-lite-support:0.3.1") // Optional but recommended
+
+    // For audio recording
     implementation("androidx.navigation:navigation-compose:2.7.6")
+    implementation("androidx.core:core-ktx:1.7.0")
+    //implementation(libs.litert)  // For easier permissions handling
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
