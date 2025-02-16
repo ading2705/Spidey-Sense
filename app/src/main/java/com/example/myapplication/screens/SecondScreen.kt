@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.example.myapplication.BackgroundImage
 
 @Composable
 fun SecondScreen(navController: NavController) {
@@ -51,42 +52,46 @@ fun SecondScreen(navController: NavController) {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Enter Phone Number to Send Location:", modifier = Modifier.padding(bottom = 8.dp))
+    Box (modifier = Modifier.fillMaxSize()) {
+        BackgroundImage()
 
-        TextField(
-            value = phoneNumber,
-            onValueChange = { phoneNumber = it },
-            label = { Text("Phone Number") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Enter Phone Number to Send Location:", modifier = Modifier.padding(bottom = 8.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+            TextField(
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                label = { Text("Phone Number") },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        Button(onClick = {
-            if (!hasSmsPermission) {
-                requestSmsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(onClick = {
+                if (!hasSmsPermission) {
+                    requestSmsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
+                }
+                if (!hasLocationPermission) {
+                    requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+                if (hasSmsPermission && hasLocationPermission) {
+                    sendLocationSms(context, phoneNumber)
+                }
+            }) {
+                Text("Send My Coordinates")
             }
-            if (!hasLocationPermission) {
-                requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            }
-            if (hasSmsPermission && hasLocationPermission) {
-                sendLocationSms(context, phoneNumber)
-            }
-        }) {
-            Text("Send My Coordinates")
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { navController.popBackStack() }) {
-            Text("Go Back")
+            Button(onClick = { navController.popBackStack() }) {
+                Text("Go Back")
+            }
         }
     }
 }
