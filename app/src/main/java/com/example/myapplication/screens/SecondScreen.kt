@@ -15,11 +15,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.example.myapplication.R
+import com.example.myapplication.BackgroundImage
 
 @Composable
 fun SecondScreen(navController: NavController) {
@@ -40,6 +46,11 @@ fun SecondScreen(navController: NavController) {
         hasLocationPermission = isGranted
     }
 
+    val customFontFamily = FontFamily(
+        Font(R.font.komicaregular)
+    )
+
+
     // Check and request permissions
     LaunchedEffect(Unit) {
         hasSmsPermission = ContextCompat.checkSelfPermission(
@@ -51,42 +62,47 @@ fun SecondScreen(navController: NavController) {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("Enter Phone Number to Send Location:", modifier = Modifier.padding(bottom = 8.dp))
+    Box (modifier = Modifier.fillMaxSize()) {
+        BackgroundImage()
 
-        TextField(
-            value = phoneNumber,
-            onValueChange = { phoneNumber = it },
-            label = { Text("Phone Number") },
-            modifier = Modifier.fillMaxWidth()
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Text("Enter Phone Number to Send Location:", modifier = Modifier.padding(bottom = 20.dp), color = Color.White, fontFamily = customFontFamily)
 
-        Button(onClick = {
-            if (!hasSmsPermission) {
-                requestSmsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
+            TextField(
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                label = { Text("Phone Number") },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(onClick = {
+                if (!hasSmsPermission) {
+                    requestSmsPermissionLauncher.launch(Manifest.permission.SEND_SMS)
+                }
+                if (!hasLocationPermission) {
+                    requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+                }
+                if (hasSmsPermission && hasLocationPermission) {
+                    sendLocationSms(context, phoneNumber)
+                }
+            }) {
+                Text("Send My Coordinates", color = Color.White, fontFamily = customFontFamily)
             }
-            if (!hasLocationPermission) {
-                requestLocationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-            }
-            if (hasSmsPermission && hasLocationPermission) {
-                sendLocationSms(context, phoneNumber)
-            }
-        }) {
-            Text("Send My Coordinates")
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = { navController.popBackStack() }) {
-            Text("Go Back")
+            Button(onClick = { navController.popBackStack() }) {
+                Text("Go Back", color = Color.White, fontFamily = customFontFamily)
+            }
         }
     }
 }

@@ -2,7 +2,6 @@ package com.example.myapplication.screens
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -10,33 +9,39 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.example.myapplication.BackgroundImage
 import com.example.myapplication.AudioRecorder
 import com.example.myapplication.R
+import com.example.myapplication.navigation.Screen
 import com.example.myapplication.ml.YAMNetHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
 
-
 @Composable
 fun HomeScreen(navController: NavController) {
+    var isImageOne by remember { mutableStateOf(true) }
     val context = LocalContext.current
     var predictionState by remember { mutableStateOf("Press FAB to start detecting.") }
+    val customFontFamily = FontFamily(
+        Font(R.font.komicaregular)
+    )
     val yamNetHelper = remember { YAMNetHelper(context) }
     val audioRecorder = remember { AudioRecorder(context) }
     var isRecording by remember { mutableStateOf(false) }
@@ -121,11 +126,16 @@ fun HomeScreen(navController: NavController) {
                     } else {
                         "No dangerous sounds detected."
                     }
+
                     delay(500)
+
                 } catch (e: Exception) {
                     predictionState = "Error: ${e.message}"
                 }
             }
+
+        } else {
+            Toast.makeText(context, "Permission denied!", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -133,10 +143,14 @@ fun HomeScreen(navController: NavController) {
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { isRecording = !isRecording },
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.background,
+                elevation = FloatingActionButtonDefaults.elevation(0.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.spideybelloff),
+                    painter = painterResource(
+                        id = if (isImageOne) R.drawable.spideybelloff
+                        else R.drawable.spideybellon
+                    ),
                     contentDescription = "Custom FAB",
                     modifier = Modifier
                         .size(56.dp)
@@ -145,21 +159,39 @@ fun HomeScreen(navController: NavController) {
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+        Box(
+            modifier = Modifier.fillMaxSize()
         ) {
-            Text("Press FAB to detect dangerous sounds", modifier = Modifier.padding(bottom = 16.dp))
-            Text(predictionState, modifier = Modifier.padding(top = 16.dp))
+            BackgroundImage()
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text("Press FAB to detect dangerous sounds", modifier = Modifier.padding(top = 200.dp), color = Color.White, fontFamily = customFontFamily)
+                Text(predictionState, modifier = Modifier.padding(top = 16.dp), color = Color.White, fontFamily = customFontFamily)
+
+                Spacer(modifier = Modifier.height(200.dp))
+
+                OutlinedButton(
+                    onClick = { navController.navigate(Screen.Second.route) },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary, // Background color
+                        contentColor = MaterialTheme.colorScheme.onPrimary // Text color
+                    )
+                ) {
+                    Text("Send SMS", color = Color.White, fontFamily = customFontFamily)
+                }
+            }
         }
     }
 }
 
-// Extension function to find the index of the maximum value in a FloatArray
+// Function to find the index of the max value in a FloatArray
 fun FloatArray.indexOfMax(): Int {
     var maxIndex = 0
     for (i in 1 until this.size) {

@@ -57,6 +57,7 @@ dependencies {
 
     // For audio recording
     implementation("androidx.navigation:navigation-compose:2.7.6")
+    implementation("androidx.core:core-splashscreen:1.0.1")
     implementation("androidx.core:core-ktx:1.7.0")
     //implementation(libs.litert)  // For easier permissions handling
 
