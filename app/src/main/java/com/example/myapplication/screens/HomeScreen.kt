@@ -153,14 +153,16 @@ fun HomeScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Button(onClick = {
-                    navController.navigate(Screen.Second.route)
-                }) {
+                OutlinedButton(
+                    onClick = { navController.navigate(Screen.Second.route) },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary, // Background color
+                        contentColor = MaterialTheme.colorScheme.onPrimary // Text color
+                    )
+                ) {
                     Text("Go to Second Screen")
                 }
-
             }
-
         }
     }
 }
