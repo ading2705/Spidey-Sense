@@ -134,8 +134,6 @@ fun HomeScreen(navController: NavController) {
                 }
             }
 
-        } else {
-            Toast.makeText(context, "Permission denied!", Toast.LENGTH_SHORT).show()
         }
     }
 
