@@ -32,10 +32,12 @@ class YAMNetHelper(context: Context) {
         Log.d("YAMNetHelper", "First 10 samples: ${audioData.take(10).joinToString()}")
 
         // Define the output array with shape [4, 521]
-        val output = Array(4) { FloatArray(521) } // Shape: [4, 521]
+        val output = Array(1) { FloatArray(521) } // Shape: [4, 521]
 
         // Run the interpreter with the 1D input tensor
         interpreter.run(audioData, output)
+
+        Log.d("YAMNetHelper", "Output ${output[0].take(10).joinToString()}")
 
         // Return the predictions
         return output

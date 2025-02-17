@@ -21,6 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.example.myapplication.AudioRecorder
@@ -29,42 +30,78 @@ import com.example.myapplication.ml.YAMNetHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
+
 
 @Composable
 fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
-    var predictionState by remember { mutableStateOf("") }
+    var predictionState by remember { mutableStateOf("Press FAB to start detecting.") }
     val yamNetHelper = remember { YAMNetHelper(context) }
-    val audioRecorder = remember { AudioRecorder(context, durationInSeconds = 2) }
+    val audioRecorder = remember { AudioRecorder(context) }
+    var isRecording by remember { mutableStateOf(false) }
+    // List of classes from YAMNet for speech
+    val speechClasses = listOf(
+        "Speech", "Human speech", "Telephone", "Voice"
+    )
+
+    // Launcher to request the RECORD_AUDIO permission
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (!isGranted) {
+            Toast.makeText(context, "Microphone permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Check mic permission when the composable is first launched
+    LaunchedEffect(Unit) {
+        if (ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.RECORD_AUDIO
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
 
     val classNames = remember {
         context.resources.openRawResource(R.raw.yamnet_class_map)
             .bufferedReader()
             .useLines { lines ->
                 lines.drop(1) // Skip the header row
-                    .map { it.split(",")[2].trim('"') } // Extract the class names
+                    .map { it.split(",")[2].trim('"') } // Extract class names
                     .toList()
             }
     }
 
-    // Permission launcher
-    val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        if (isGranted) {
-            // Permission granted, proceed with recording
-            CoroutineScope(Dispatchers.Main).launch {
+    // Launch a coroutine that continuously records while `isRecording` is true
+    LaunchedEffect(isRecording) {
+        if (isRecording) {
+            while (isRecording) {
                 try {
-                    // Record audio
                     val audioData = audioRecorder.startRecording()
-
-                    // Classify the audio data
                     val predictions = yamNetHelper.classifyAudio(audioData)
+                    var firstPrediction = predictions[0]
 
-                    // Use the first set of predictions (output[0])
-                    val firstPrediction = predictions[0]
+                    var topPrediction = firstPrediction.maxOrNull()
+                    var topIndex = firstPrediction.indexOfMax()
+                    var topClass = classNames[topIndex]
 
-                    // Define dangerous classes
+                    while (topClass in listOf("Speech", "Human speech", "Telephone", "Voice") && firstPrediction.isNotEmpty()) {
+                        // Remove the speech class (topClass) from the prediction list
+                        firstPrediction = firstPrediction.filterIndexed { index, _ ->
+                            classNames[index] != topClass
+                        }.toFloatArray()
+
+                        // Ensure that firstPrediction is not empty before continuing
+                        if (firstPrediction.isEmpty()) break
+
+                        topPrediction = firstPrediction.maxOrNull() // Find the new top prediction
+                        topIndex = firstPrediction.indexOfMax()    // Get the index of the max value
+                        topClass = classNames[topIndex]             // Get the class of the max value
+                    }
+
                     val dangerousClasses = listOf(
                         "Breaking", "Shout", "Bellow", "Yell", "Screaming", "Roar",
                         "Vehicle horn, car horn, honking", "Car alarm", "Explosion", "Slam",
@@ -76,100 +113,23 @@ fun HomeScreen(navController: NavController) {
                         "Artillery fire", "Eruption", "Boom", "Bang", "Smash, crash", "Whip", "Crushing"
                     )
 
-                    // Get the top prediction
-                    val topPrediction = firstPrediction.maxOrNull()
-                    val topIndex = firstPrediction.indexOfMax() // Use the custom function
-                    val topClass = classNames[topIndex] // Replace with your class names
-
-                    // Check if the top prediction is dangerous
-                    if (topClass in classNames && topPrediction!! >= 0.5) {
-                        predictionState = "Dangerous sound detected: $topClass (Confidence: $topPrediction)"
+                    predictionState = if (topClass in classNames && topPrediction!! >= 0.4) {
+                        "Dangerous sound detected: $topClass (Confidence: $topPrediction)"
                     } else {
-                        predictionState = "No dangerous sounds detected."
+                        "No dangerous sounds detected."
                     }
-                } catch (e: SecurityException) {
-                    // Handle permission denial
-                    predictionState = "Error: ${e.message}"
-                    Toast.makeText(context, "Permission denied!", Toast.LENGTH_SHORT).show()
+                    delay(500)
                 } catch (e: Exception) {
                     predictionState = "Error: ${e.message}"
                 }
             }
-        } else {
-            // Permission denied, show a message
-            Toast.makeText(context, "Permission denied!", Toast.LENGTH_SHORT).show()
         }
     }
 
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = {
-                    // Check and request permission
-                    when {
-                        ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.RECORD_AUDIO
-                        ) == PackageManager.PERMISSION_GRANTED -> {
-                            // Permission already granted, start recording
-                            CoroutineScope(Dispatchers.Main).launch {
-                                try {
-                                    // Record audio
-                                    val audioData = audioRecorder.startRecording()
-
-                                    // Classify the audio data
-                                    val predictions = yamNetHelper.classifyAudio(audioData)
-
-                                    // Use the first set of predictions (output[0])
-                                    val firstPrediction = predictions[2]
-
-                                    // Define dangerous classes
-                                    val dangerousClasses = listOf(
-                                        "Breaking", "Shout", "Bellow", "Yell", "Screaming", "Roar",
-                                        "Vehicle horn, car horn, honking", "Car alarm", "Explosion", "Slam",
-                                        "Emergency vehicle", "Police car (siren)", "Ambulance (siren)",
-                                        "Fire engine, fire truck (siren)", "Train whistle", "Train horn",
-                                        "Train wheels squealing", "Chainsaw", "Alarm", "Siren",
-                                        "Civil defense siren", "Smoke detector, smoke alarm", "Fire alarm",
-                                        "Explosion", "Gunshot, gunfire", "Machine gun", "Fusillade",
-                                        "Artillery fire", "Eruption", "Boom", "Bang", "Smash, crash", "Whip", "Crushing"
-                                    )
-
-                                    // Get the top prediction
-                                    val topPrediction = firstPrediction.maxOrNull()
-                                    val topIndex = firstPrediction.indexOfMax() // Use the custom function
-                                    val topClass = classNames[topIndex] // Replace with your class names
-
-                                    // Check if the top prediction is dangerous
-                                    if (topClass in dangerousClasses && topPrediction!! >= 0.5) {
-                                        predictionState = "Dangerous sound detected: $topClass (Confidence: $topPrediction)"
-                                    } else {
-                                        predictionState = "No dangerous sounds detected."
-                                    }
-                                } catch (e: SecurityException) {
-                                    // Handle permission denial
-                                    predictionState = "Error: ${e.message}"
-                                    Toast.makeText(context, "Permission denied!", Toast.LENGTH_SHORT).show()
-                                } catch (e: Exception) {
-                                    predictionState = "Error: ${e.message}"
-                                }
-                            }
-                        }
-                        ActivityCompat.shouldShowRequestPermissionRationale(
-                            (context as Activity),
-                            Manifest.permission.RECORD_AUDIO
-                        ) -> {
-                            // Explain why the permission is needed
-                            Toast.makeText(context, "Audio recording permission is required to detect sounds.", Toast.LENGTH_LONG).show()
-                            // Request permission
-                            recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                        }
-                        else -> {
-                            // Request permission
-                            recordAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                        }
-                    }
-                },
+                onClick = { isRecording = !isRecording },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
                 Image(
@@ -206,15 +166,3 @@ fun FloatArray.indexOfMax(): Int {
     }
     return maxIndex
 }
-
-// Replace this with your actual class names
-//val classNames = listOf(
-//    "Breaking", "Shout", "Bellow", "Yell", "Screaming", "Roar",
-//    "Vehicle horn, car horn, honking", "Car alarm", "Explosion", "Slam",
-//    "Emergency vehicle", "Police car (siren)", "Ambulance (siren)",
-//    "Fire engine, fire truck (siren)", "Train whistle", "Train horn",
-//    "Train wheels squealing", "Chainsaw", "Alarm", "Siren",
-//    "Civil defense siren", "Smoke detector, smoke alarm", "Fire alarm",
-//    "Explosion", "Gunshot, gunfire", "Machine gun", "Fusillade",
-//    "Artillery fire", "Eruption", "Boom", "Bang", "Smash, crash", "Whip", "Crushing"
-//)
