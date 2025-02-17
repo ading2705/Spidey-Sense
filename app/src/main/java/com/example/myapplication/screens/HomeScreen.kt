@@ -149,7 +149,17 @@ fun HomeScreen(navController: NavController) {
             ) {
                 Text("Press FAB to detect dangerous sounds", modifier = Modifier.padding(bottom = 16.dp))
                 Text(predictionState, modifier = Modifier.padding(top = 16.dp))
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(onClick = {
+                    navController.navigate(Screen.Second.route)
+                }) {
+                    Text("Go to Second Screen")
+                }
+
             }
+
         }
     }
 }
