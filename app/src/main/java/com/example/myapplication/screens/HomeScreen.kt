@@ -121,7 +121,7 @@ fun HomeScreen(navController: NavController) {
                         "Artillery fire", "Eruption", "Boom", "Bang", "Smash, crash", "Whip", "Crushing"
                     )
 
-                    predictionState = if (topClass in dangerousClasses && topProb >= 0.5) {
+                    predictionState = if (topClass in dangerousClasses && topProb >= 0.6) {
                         "Dangerous sound detected: $topClass (Confidence: $topProb)"
                     } else {
                         "No dangerous sounds detected."
