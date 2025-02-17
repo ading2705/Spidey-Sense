@@ -32,6 +32,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+
+
 @Composable
 fun HomeScreen(navController: NavController) {
     var isImageOne by remember { mutableStateOf(true) }
@@ -52,6 +54,7 @@ fun HomeScreen(navController: NavController) {
                     .toList()
             }
     }
+
 
     // Permission launcher
     val recordAudioPermissionLauncher = rememberLauncherForActivityResult(
@@ -155,8 +158,8 @@ fun HomeScreen(navController: NavController) {
                 verticalArrangement = Arrangement.Center,
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("Press FAB to detect dangerous sounds", modifier = Modifier.padding(bottom = 16.dp))
-                Text(predictionState, modifier = Modifier.padding(top = 16.dp))
+                Text("Press FAB to detect dangerous sounds", modifier = Modifier.padding(top = 200.dp), color = Color.White, fontFamily = customFontFamily)
+                Text(predictionState, modifier = Modifier.padding(top = 16.dp), color = Color.White, fontFamily = customFontFamily)
 //                Text("Enter text to classify:", modifier = Modifier.padding(bottom = 16.dp))
 //                TextField(
 //                    value = textState,
@@ -181,7 +184,7 @@ fun HomeScreen(navController: NavController) {
 
 //                Text(predictionState, modifier = Modifier.padding(top = 16.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(200.dp))
 
                 OutlinedButton(
                     onClick = { navController.navigate(Screen.Second.route) },
@@ -190,7 +193,7 @@ fun HomeScreen(navController: NavController) {
                         contentColor = MaterialTheme.colorScheme.onPrimary // Text color
                     )
                 ) {
-                    Text("Go to Second Screen", color = Color.White, fontFamily = customFontFamily)
+                    Text("Send SMS", color = Color.White, fontFamily = customFontFamily)
                 }
             }
         }
