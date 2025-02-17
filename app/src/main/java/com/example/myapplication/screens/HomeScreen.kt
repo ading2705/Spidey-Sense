@@ -84,23 +84,26 @@ fun HomeScreen(navController: NavController) {
                     val predictions = yamNetHelper.classifyAudio(audioData)
                     var firstPrediction = predictions[0]
 
-                    var topPrediction = firstPrediction.maxOrNull()
-                    var topIndex = firstPrediction.indexOfMax()
-                    var topClass = classNames[topIndex]
+                    // List of classes to exclude (speech-related)
+                    val speechClasses = listOf("Speech", "Human speech", "Telephone", "Voice")
 
-                    while (topClass in listOf("Speech", "Human speech", "Telephone", "Voice") && firstPrediction.isNotEmpty()) {
-                        // Remove the speech class (topClass) from the prediction list
-                        firstPrediction = firstPrediction.filterIndexed { index, _ ->
-                            classNames[index] != topClass
-                        }.toFloatArray()
+                    // Get indices of all speech-related classes
+                    val speechIndices = speechClasses.mapNotNull { classNames.indexOf(it).takeIf { it != -1 } }
 
-                        // Ensure that firstPrediction is not empty before continuing
-                        if (firstPrediction.isEmpty()) break
+                    // Get indices of all classes except speech-related ones
+                    val remainingIndices = classNames.indices.filter { it !in speechIndices }
 
-                        topPrediction = firstPrediction.maxOrNull() // Find the new top prediction
-                        topIndex = firstPrediction.indexOfMax()    // Get the index of the max value
-                        topClass = classNames[topIndex]             // Get the class of the max value
-                    }
+                    // Extract corresponding probabilities from predictions
+                    val remainingProbabilities = remainingIndices.map { firstPrediction[it] }
+
+                    // Renormalize probabilities to sum to 1
+                    val totalRemainingProb = remainingProbabilities.sum().takeIf { it > 0 } ?: 1f // Avoid division by zero
+                    val renormalizedProbs = (remainingProbabilities.map { it / totalRemainingProb }).toFloatArray()
+
+                    // Find the class with the highest probability
+                    val maxIndex = renormalizedProbs.indexOfMax()
+                    val topClass = classNames[remainingIndices[maxIndex]] // Get class name from original list
+                    val topProb = renormalizedProbs[maxIndex]
 
                     val dangerousClasses = listOf(
                         "Breaking", "Shout", "Bellow", "Yell", "Screaming", "Roar",
@@ -113,8 +116,8 @@ fun HomeScreen(navController: NavController) {
                         "Artillery fire", "Eruption", "Boom", "Bang", "Smash, crash", "Whip", "Crushing"
                     )
 
-                    predictionState = if (topClass in classNames && topPrediction!! >= 0.4) {
-                        "Dangerous sound detected: $topClass (Confidence: $topPrediction)"
+                    predictionState = if (topClass in dangerousClasses && topProb >= 0.4) {
+                        "Dangerous sound detected: $topClass (Confidence: $topProb)"
                     } else {
                         "No dangerous sounds detected."
                     }
