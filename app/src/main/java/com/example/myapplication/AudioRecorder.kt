@@ -11,7 +11,7 @@ import kotlinx.coroutines.withContext
 import android.Manifest
 import android.util.Log
 
-class AudioRecorder(private val context: Context) {
+class AudioRecorder(private val context: Context, private val durationInSeconds: Int = 3) {
     private var audioRecord: AudioRecord? = null
     private val sampleRate = 16000 // YAMNet requires 16 kHz
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO // Mono audio
@@ -40,8 +40,8 @@ class AudioRecorder(private val context: Context) {
 
             audioRecord?.startRecording()
 
-            // Record for 1 second (15600 samples at 16 kHz)
-            val recordingDuration = 1 * sampleRate // 1 second of audio
+            // Record for the specified duration
+            val recordingDuration = durationInSeconds * sampleRate // Duration in samples
             var totalSamplesRead = 0
 
             while (totalSamplesRead < recordingDuration) {
@@ -59,7 +59,7 @@ class AudioRecorder(private val context: Context) {
             audioRecord?.release()
             audioRecord = null
 
-            // Ensure the audio data has exactly 15600 samples
+            // Ensure the audio data has exactly the required number of samples
             if (audioData.size > recordingDuration) {
                 audioData.subList(recordingDuration, audioData.size).clear()
             } else if (audioData.size < recordingDuration) {

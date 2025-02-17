@@ -35,7 +35,7 @@ fun HomeScreen(navController: NavController) {
     val context = LocalContext.current
     var predictionState by remember { mutableStateOf("") }
     val yamNetHelper = remember { YAMNetHelper(context) }
-    val audioRecorder = remember { AudioRecorder(context) }
+    val audioRecorder = remember { AudioRecorder(context, durationInSeconds = 2) }
 
     val classNames = remember {
         context.resources.openRawResource(R.raw.yamnet_class_map)
@@ -82,7 +82,7 @@ fun HomeScreen(navController: NavController) {
                     val topClass = classNames[topIndex] // Replace with your class names
 
                     // Check if the top prediction is dangerous
-                    if (topClass in dangerousClasses && topPrediction!! >= 0.5) {
+                    if (topClass in classNames && topPrediction!! >= 0.5) {
                         predictionState = "Dangerous sound detected: $topClass (Confidence: $topPrediction)"
                     } else {
                         predictionState = "No dangerous sounds detected."
@@ -121,7 +121,7 @@ fun HomeScreen(navController: NavController) {
                                     val predictions = yamNetHelper.classifyAudio(audioData)
 
                                     // Use the first set of predictions (output[0])
-                                    val firstPrediction = predictions[0]
+                                    val firstPrediction = predictions[2]
 
                                     // Define dangerous classes
                                     val dangerousClasses = listOf(
