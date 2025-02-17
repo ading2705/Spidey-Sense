@@ -21,25 +21,35 @@ import com.example.myapplication.navigation.Screen
 
 @Composable
 fun HomeScreen(navController: NavController) {
+    var isImageOne by remember { mutableStateOf(true) }
     val context = LocalContext.current
     var textState by remember { mutableStateOf("") }
     var predictionState by remember { mutableStateOf("") }
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    Toast.makeText(context, "FAB Clicked!", Toast.LENGTH_SHORT).show()
+                    isImageOne = !isImageOne  // Toggle the state for image
+                    if (isImageOne) Toast.makeText(context, "Notifications Disabled!", Toast.LENGTH_SHORT).show()
+                    else Toast.makeText(context, "Notifications Enabled!", Toast.LENGTH_SHORT).show()
                 },
-                containerColor = MaterialTheme.colorScheme.primary
+                containerColor = MaterialTheme.colorScheme.background,
+                elevation = FloatingActionButtonDefaults.elevation(
+                    defaultElevation = 0.dp,
+                    pressedElevation = 0.dp,
+                    focusedElevation = 0.dp,
+                    hoveredElevation = 0.dp
+                )
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.spideybelloff),
+                    painter = painterResource(
+                        id = if (isImageOne) R.drawable.spideybelloff
+                        else R.drawable.spideybellon),
                     contentDescription = "Custom FAB",
                     modifier = Modifier
-                        .size(56.dp)
-                        .clip(CircleShape)
+                        .size(56.dp) // Adjust FAB size
+                        .clip(CircleShape) // Ensure the image remains circular
                 )
             }
         }
