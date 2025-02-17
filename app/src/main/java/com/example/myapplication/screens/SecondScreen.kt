@@ -73,7 +73,7 @@ fun SecondScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Text("Enter Phone Number to Send Location:", modifier = Modifier.padding(bottom = 8.dp), color = Color.White, fontFamily = customFontFamily)
+            Text("Enter Phone Number to Send Location:", modifier = Modifier.padding(bottom = 20.dp), color = Color.White, fontFamily = customFontFamily)
 
             TextField(
                 value = phoneNumber,

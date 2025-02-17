@@ -103,8 +103,9 @@ fun HomeScreen(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Button(onClick = { navController.navigate(Screen.Second.route) }) {
-                    Text("Go to Second Screen", color = Color.White, fontFamily = customFontFamily)
+                Button(onClick = { navController.navigate(Screen.Second.route) },
+                    modifier = Modifier.padding(bottom = 200.dp)) {
+                    Text("Send SMS", color = Color.White, fontFamily = customFontFamily)
                 }
             }
         }
