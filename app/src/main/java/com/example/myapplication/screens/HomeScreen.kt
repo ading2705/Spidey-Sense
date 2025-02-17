@@ -146,10 +146,8 @@ fun HomeScreen(navController: NavController) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            // ✅ Background Image (Now ignores Scaffold padding)
             BackgroundImage()
 
-            // ✅ Content Layout (Applies padding properly)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -160,29 +158,6 @@ fun HomeScreen(navController: NavController) {
             ) {
                 Text("Press FAB to detect dangerous sounds", modifier = Modifier.padding(top = 200.dp), color = Color.White, fontFamily = customFontFamily)
                 Text(predictionState, modifier = Modifier.padding(top = 16.dp), color = Color.White, fontFamily = customFontFamily)
-//                Text("Enter text to classify:", modifier = Modifier.padding(bottom = 16.dp))
-//                TextField(
-//                    value = textState,
-//                    onValueChange = { textState = it },
-//                    label = { Text("Enter your text") },
-//                    modifier = Modifier.padding(bottom = 16.dp)
-//                )
-//
-//                Button(onClick = {
-//                    try {
-//                        val input = arrayOf(floatArrayOf(textState.length.toFloat()))
-//                        predictionState = "Prediction: ${input[0][0]}"
-//                        Toast.makeText(context, "Prediction: ${input[0][0]}", Toast.LENGTH_SHORT).show()
-//                    } catch (e: Exception) {
-//                        predictionState = "Error: ${e.message}"
-//                        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
-//                    }
-//                    textState = ""
-//                }) {
-//                    Text("Submit")
-//                }
-
-//                Text(predictionState, modifier = Modifier.padding(top = 16.dp))
 
                 Spacer(modifier = Modifier.height(200.dp))
 
