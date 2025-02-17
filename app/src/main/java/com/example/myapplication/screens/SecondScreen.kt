@@ -15,11 +15,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
+import com.example.myapplication.R
 import com.example.myapplication.BackgroundImage
 
 @Composable
@@ -40,6 +45,11 @@ fun SecondScreen(navController: NavController) {
     ) { isGranted: Boolean ->
         hasLocationPermission = isGranted
     }
+
+    val customFontFamily = FontFamily(
+        Font(R.font.komicaregular)
+    )
+
 
     // Check and request permissions
     LaunchedEffect(Unit) {
@@ -62,7 +72,8 @@ fun SecondScreen(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Enter Phone Number to Send Location:", modifier = Modifier.padding(bottom = 8.dp))
+
+            Text("Enter Phone Number to Send Location:", modifier = Modifier.padding(bottom = 20.dp), color = Color.White, fontFamily = customFontFamily)
 
             TextField(
                 value = phoneNumber,
@@ -84,13 +95,13 @@ fun SecondScreen(navController: NavController) {
                     sendLocationSms(context, phoneNumber)
                 }
             }) {
-                Text("Send My Coordinates")
+                Text("Send My Coordinates", color = Color.White, fontFamily = customFontFamily)
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(onClick = { navController.popBackStack() }) {
-                Text("Go Back")
+                Text("Go Back", color = Color.White, fontFamily = customFontFamily)
             }
         }
     }

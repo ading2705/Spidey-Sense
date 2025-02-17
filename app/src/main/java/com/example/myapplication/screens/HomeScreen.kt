@@ -2,7 +2,6 @@ package com.example.myapplication.screens
 
 import android.Manifest
 import android.app.Activity
-import android.content.Context
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -16,7 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -35,6 +37,9 @@ fun HomeScreen(navController: NavController) {
     var isImageOne by remember { mutableStateOf(true) }
     val context = LocalContext.current
     var predictionState by remember { mutableStateOf("") }
+    val customFontFamily = FontFamily(
+        Font(R.font.komicaregular)
+    )
     val yamNetHelper = remember { YAMNetHelper(context) }
     val audioRecorder = remember { AudioRecorder(context, durationInSeconds = 2) }
 
@@ -138,8 +143,10 @@ fun HomeScreen(navController: NavController) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
+            // ✅ Background Image (Now ignores Scaffold padding)
             BackgroundImage()
 
+            // ✅ Content Layout (Applies padding properly)
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -150,6 +157,29 @@ fun HomeScreen(navController: NavController) {
             ) {
                 Text("Press FAB to detect dangerous sounds", modifier = Modifier.padding(bottom = 16.dp))
                 Text(predictionState, modifier = Modifier.padding(top = 16.dp))
+//                Text("Enter text to classify:", modifier = Modifier.padding(bottom = 16.dp))
+//                TextField(
+//                    value = textState,
+//                    onValueChange = { textState = it },
+//                    label = { Text("Enter your text") },
+//                    modifier = Modifier.padding(bottom = 16.dp)
+//                )
+//
+//                Button(onClick = {
+//                    try {
+//                        val input = arrayOf(floatArrayOf(textState.length.toFloat()))
+//                        predictionState = "Prediction: ${input[0][0]}"
+//                        Toast.makeText(context, "Prediction: ${input[0][0]}", Toast.LENGTH_SHORT).show()
+//                    } catch (e: Exception) {
+//                        predictionState = "Error: ${e.message}"
+//                        Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+//                    }
+//                    textState = ""
+//                }) {
+//                    Text("Submit")
+//                }
+
+//                Text(predictionState, modifier = Modifier.padding(top = 16.dp))
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -160,7 +190,7 @@ fun HomeScreen(navController: NavController) {
                         contentColor = MaterialTheme.colorScheme.onPrimary // Text color
                     )
                 ) {
-                    Text("Go to Second Screen")
+                    Text("Go to Second Screen", color = Color.White, fontFamily = customFontFamily)
                 }
             }
         }
